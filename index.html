@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LA28 Sailing">
+<meta name="theme-color" content="#020617">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png" type="image/png">
+<title>LA28 Sailing Countdown</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,500;9..40,700;9..40,900&family=JetBrains+Mono:wght@700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #020617; overflow-x: hidden; height: 100%; }
+  body {
+    background-image:
+      radial-gradient(ellipse at 10% 0%, rgba(6,78,118,0.25) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 100%, rgba(99,102,241,0.08) 0%, transparent 40%);
+    color: #e2e8f0;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100%; min-height: 100dvh;
+    padding: 32px 16px;
+    padding-top: calc(32px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .brand svg { color: #06b6d4; }
+  .brand h1 {
+    font-size: 32px; font-weight: 900; letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #06b6d4, #818cf8, #fbbf24);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    color: #64748b; text-transform: uppercase;
+    letter-spacing: 0.15em; font-size: 11px; font-weight: 600;
+    margin-bottom: 52px; text-align: center;
+  }
+  .gun-label {
+    display: flex; align-items: center; gap: 7px;
+    color: #94a3b8; text-transform: uppercase;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.18em;
+    margin-bottom: 30px;
+  }
+  .gun-label svg { color: #06b6d4; }
+
+  .digits {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    width: 100%; max-width: 360px;
+    gap: 28px;
+  }
+  .unit { text-align: center; flex: 1 1 0; min-width: 0; }
+  .num {
+    font-family: 'JetBrains Mono', Menlo, monospace; font-weight: 700;
+    font-size: 52px; line-height: 1; letter-spacing: -0.02em; display: block;
+  }
+  .lbl {
+    display: block; color: #64748b; text-transform: uppercase;
+    font-size: 9px; letter-spacing: 0.12em; font-weight: 700;
+    margin-top: 12px; font-family: 'DM Sans', sans-serif;
+  }
+
+  .status {
+    margin-top: 28px; display: flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .status .dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+
+  .progress-wrap {
+    margin-top: 44px;
+    width: 100%; max-width: 460px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .pct-block { display: flex; flex-direction: column; align-items: center; margin-bottom: 14px; }
+  .pct-big {
+    font-family: 'JetBrains Mono', Menlo, monospace;
+    font-size: 19px; font-weight: 700; line-height: 1;
+    letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #06b6d4, #818cf8, #fbbf24);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .pct-lbl {
+    margin-top: 5px;
+    color: #64748b; text-transform: uppercase;
+    font-size: 9px; letter-spacing: 0.14em; font-weight: 700;
+  }
+  .progress-track {
+    height: 3px; border-radius: 3px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden; position: relative;
+    width: 100%;
+  }
+  .progress-fill {
+    position: absolute; right: 0; top: 0;
+    height: 100%; width: 74%;
+    background: linear-gradient(90deg, #06b6d4, #818cf8, #fbbf24);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(6,182,212,0.45);
+  }
+  .progress-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #475569; font-weight: 700;
+  }
+
+  .footer { margin-top: 56px; text-align: center; }
+  .coords { color: #334155; font-size: 10px; }
+  .tz-row {
+    margin-top: 8px;
+    font-size: 9px; color: #475569;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .tz-row span { color: #64748b; font-weight: 600; }
+  .tz-row .sep-dot { opacity: 0.4; padding: 0 4px; }
+
+  @media (max-width: 375px) {
+    .brand h1 { font-size: 24px; }
+    .num { font-size: 42px; }
+    .digits { gap: 18px; max-width: 320px; }
+    .pct-big { font-size: 16px; }
+  }
+  @media (min-width: 768px) {
+    .brand h1 { font-size: 42px; }
+    .num { font-size: 72px; }
+    .digits { max-width: 480px; gap: 40px; }
+    .pct-big { font-size: 24px; }
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+</style>
+</head>
+<body>
+
+  <div class="brand">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+    <h1>LA28 SAILING</h1>
+  </div>
+  <p class="subtitle">Olympic Sailing · 10 Events · 2 Venues</p>
+
+  <div class="gun-label">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    First Race Gun · Jul 16, 2028
+  </div>
+
+  <div class="digits" aria-live="polite" aria-label="Countdown to first race gun">
+    <div class="unit"><span class="num" id="d">810</span><span class="lbl">Days</span></div>
+    <div class="unit"><span class="num" id="h">--</span><span class="lbl">Hours</span></div>
+    <div class="unit"><span class="num" id="m">--</span><span class="lbl">Min</span></div>
+  </div>
+
+  <div class="status" id="status">
+    <span class="dot" style="background:#f59e0b;"></span>
+    <span style="color:#f59e0b;">Open in Safari for live countdown</span>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="pct-block">
+      <span class="pct-big" id="pct">74%</span>
+      <span class="pct-lbl">Time Left</span>
+    </div>
+    <div class="progress-track" role="progressbar" aria-label="Time remaining until first race gun">
+      <div class="progress-fill" id="pf"></div>
+    </div>
+    <div class="progress-meta">
+      <span>Jul 2025</span>
+      <span>Jul 2028</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p class="coords">33.77° N, 118.19° W · Long Beach &amp; Los Angeles</p>
+    <p class="tz-row">First gun · <span id="laTime">--</span><span class="sep-dot">·</span><span id="locTime">--</span> local</p>
+  </div>
+
+<script>
+  var T = new Date('2028-07-16T10:00:00-07:00').getTime();
+  var START = new Date('2025-07-16T10:00:00-07:00').getTime();
+
+  var dE = document.getElementById('d');
+  var hE = document.getElementById('h');
+  var mE = document.getElementById('m');
+  var st = document.getElementById('status');
+  var pf = document.getElementById('pf');
+  var pctE = document.getElementById('pct');
+  var laTimeEl = document.getElementById('laTime');
+  var locTimeEl = document.getElementById('locTime');
+
+  function pad(n, l) {
+    var s = '' + n;
+    while (s.length < l) s = '0' + s;
+    return s;
+  }
+
+  function tick() {
+    var now = Date.now();
+    var rem = T - now;
+    if (rem < 0) rem = 0;
+    dE.textContent = pad(Math.floor(rem / 86400000), 3);
+    hE.textContent = pad(Math.floor((rem / 3600000) % 24), 2);
+    mE.textContent = pad(Math.floor((rem / 60000) % 60), 2);
+
+    var total = T - START;
+    var left = Math.max(0, Math.min(100, (rem / total) * 100));
+    pf.style.width = left.toFixed(2) + '%';
+    pctE.textContent = left.toFixed(1) + '%';
+  }
+
+  function renderTimeZones() {
+    var d = new Date(T);
+    try {
+      laTimeEl.textContent = d.toLocaleString('en-US', {
+        timeZone: 'America/Los_Angeles',
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
+      }) + ' LA';
+    } catch (e) {
+      laTimeEl.textContent = 'Jul 16, 10:00 AM LA';
+    }
+    try {
+      locTimeEl.textContent = d.toLocaleString(undefined, {
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
+    } catch (e) {
+      locTimeEl.textContent = '';
+    }
+  }
+
+  var iv = null;
+  function startTicking() {
+    tick();
+    if (iv) clearInterval(iv);
+    iv = setInterval(tick, 30000);
+  }
+  function stopTicking() {
+    if (iv) { clearInterval(iv); iv = null; }
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopTicking();
+    else startTicking();
+  });
+
+  renderTimeZones();
+  startTicking();
+
+  st.innerHTML = '<span class="dot" style="background:#22d3ee;animation:pulse 1.5s ease-in-out infinite;"></span><span style="color:#22d3ee;">Live</span>';
+</script>
+</body>
+</html>
